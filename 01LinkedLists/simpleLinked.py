@@ -5,6 +5,9 @@
 
 # https://blog.csdn.net/qq_42281053/article/details/82225738
 
+# 这个实现不优雅，应该要加上两个哨兵？。
+
+
 class SingleNode(object):
     """单链表的结点"""
     def __init__(self,item):
