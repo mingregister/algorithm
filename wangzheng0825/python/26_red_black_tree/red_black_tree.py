@@ -5,7 +5,7 @@ from queue import Queue
 import pygraphviz as pgv
 import random
 
-OUTPUT_PATH = 'E:/'
+OUTPUT_PATH = 'D:/'
 
 
 class TreeNode:
@@ -14,6 +14,9 @@ class TreeNode:
         assert color in ['r', 'b']
         self.color = 'red' if color == 'r' else 'black'
 
+        # | |p| |
+        # | |n| | 
+        # |l| |r| 
         self.left = None
         self.right = None
         self.parent = None
@@ -78,10 +81,13 @@ class RedBlackTree:
         """
         assert type(val) is int
 
+        # 红黑树规定，插入的节点必须是红色的。
+        # 而且，二叉查找树中新插入的节点都是放在叶子节点上。
         new_node = TreeNode(val, 'r')  # 新插入的节点为红色
 
         # 根节点
         if self.root is None:
+            # 第一个插入的节点
             self.root = new_node
         else:
             n = self.root
@@ -112,33 +118,69 @@ class RedBlackTree:
         :return:
         """
         n = node
+        # 如果插入节点的父节点是黑色的，那我们什么都不用做，它仍然满足红黑树的定义
+        # 如果插入的节点是根节点，那我们直接改变它的颜色，把它变成黑色就可以了
         while n is not self.root and not n.parent.is_black():
-            # 父p 叔u 祖父g
+            # 父p(r) 叔u 祖父g 当前关注节点n
             p = self.parent(n)
             u = self.bro(p)
             g = self.parent(p)
 
-            if not u.is_black():        # case 1
-                p.set_black()           # case 1
-                u.set_black()           # case 1
-                g.set_red()             # case 1
-                n = g                   # case 1
+            if not u.is_black():        # case 1: 叔节点u是红色
+                # | |    g    | |
+                # | |u(r)|p(r)| |
+                # | |    |n(r)| |
+                p.set_black()           # case 1: 
+                u.set_black()           # case 1: 
+                g.set_red()             # case 1: 
+                # | |   g(r)  | |
+                # | |u(b)|p(b)| |
+                # | |    |n(r)| |
+                n = g                   # case 1: 切换"关注节点"为祖父节点
                 continue
 
-            if p == g.left:     # p为左结点
-                if n == p.right:        # case 2
-                    self.rotate_l(p)    # case 2
-                    n, p = p, n         # case 2
+            if p == g.left:     # 父节点p为祖父左结点
+                if n == p.right:        # case 2: n为父结点的右结点
+                    # |    |    |g|    |
+                    # |p(r)|    | |u(b)|
+                    # |    |n(r)| |    |
+                    self.rotate_l(p)    # case 2: 以p进行左旋
+                    # |    |    |g|    |
+                    # |n(r)|    | |u(b)|
+                    # |    |p(r)| |    |
+                    n, p = p, n         # case 2：(左旋之后的处理工作)切换关注节点
+                # |    |    |g|    |
+                # |p(r)|    | |u(b)|
+                # |    |n(r)| |    |
                 p.set_black()           # case 3
                 g.set_red()             # case 3
                 self.rotate_r(g)        # case 3
-            else:               # p为右节点
+                # |    |    |p(b)|    |
+                # |g(r)|    |    |u(b)|
+                # |    |n(r)|    |    |
+            else:               # 父节点p为祖父结点的右结点
                 if n == p.left:         # case 2
+                    # |    |g|    |    |
+                    # |u(b)| |    |p(r)|
+                    # |    | |n(r)|    |
                     self.rotate_r(p)    # case 2
+                    # |    |g|    |    |
+                    # |u(b)| |    |n(r)|
+                    # |    | |p(r)|    |
                     n, p = p, n         # case 2
+                    # |    |g|    |    |
+                    # |u(b)| |    |p(r)|
+                    # |    | |n(r)|    |
                 p.set_black()           # case 3
                 g.set_red()             # case 3
+                # |    |g(r)|    |    |
+                # |u(b)|    |    |p(b)|
+                # |    |    |n(r)|    |
                 self.rotate_l(g)        # case 3
+                # |    |p(b)|    |    |
+                # |u(b)|    |    |g(r)|
+                # |    |    |n(r)|    |
+
 
         # 根节点强制置黑，有两种情况根节点是红色：
         # 1. 新插入时是红色
@@ -290,6 +332,12 @@ class RedBlackTree:
         左旋
         :param node:
         :return:
+
+        |  p    | |       |  p    | |
+        | |x|   | |   ==> | |y|   | |
+        | | |   |y|   ==> | | |   |x|  
+        | | |y.l| |       | | |y.l| |
+
         """
         if node is None:
             return
@@ -301,13 +349,39 @@ class RedBlackTree:
         p = self.parent(node)
         x = node
         y = node.right
+        # | | |p|  ::  |p| | | 
+        # |x| | |  ::  | |x| |
+        # | |y| |  ::  | | |y|
 
         # node为根节点时，p为None，旋转后要更新根节点指向
         if p is not None:
+            # node不是根节点
             if x == p.left:
+                # | |   | |p|  p.left=x
+                # |x|   | | |  x.parent=p, x.right=y
+                # | |   |y| |  y.parent=x
+                # | |y.l| | |  y.parent=x
                 p.left = y
+                # y.parent = p
+                # x.right = y.left
+                # x.parent = y
+                # | |   | |p|
+                # | |   |y| |
+                # |x|   | | |
+                # | |y.l| | |
             else:
+                # |p| |   | |  p.right=x
+                # | |x|   | |  x.parent=p, x.right=y
+                # | | |   |y|  y.parent=x
+                # | | |y.l| |  y.parent=x
                 p.right = y
+                # y.parent = p
+                # x.parent = y 
+                # x.right = y.left 
+                # |p| |   | |  
+                # | | |   |y|
+                # | |x|   | |
+                # | | |y.l| |
         else:
             self.root = y
 
@@ -320,9 +394,14 @@ class RedBlackTree:
 
     def rotate_r(self, node):
         """
-        右旋
+        右旋: 即，与左节点调换位置
         :param node:
         :return:
+         
+        | |    p|       |p|   | |
+        | |   |x|  ==>  |y|   | |
+        |y|   | |  ==>  | |   |x|  
+        | |y.r| |       | |y.r| |
         """
         if node is None:
             return
