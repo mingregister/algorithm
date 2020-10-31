@@ -329,14 +329,14 @@ class RedBlackTree:
 
     def rotate_l(self, node):
         """
-        左旋
+        左旋: 即，与node.right调换位置
         :param node:
         :return:
 
-        |  p    | |       |  p    | |
-        | |x|   | |   ==> | |y|   | |
-        | | |   |y|   ==> | | |   |x|  
-        | | |y.l| |       | | |y.l| |
+        |  p    | |       |  |    p|
+        | |x|   | |  ==>  |  |   |y|
+        | | |   |y|  ==>  | x|   | |  
+        | | |y.l| |       |  |y.l| |
 
         """
         if node is None:
@@ -394,7 +394,7 @@ class RedBlackTree:
 
     def rotate_r(self, node):
         """
-        右旋: 即，与左节点调换位置
+        右旋: 即，与node.left调换位置
         :param node:
         :return:
          
