@@ -140,24 +140,24 @@ class RedBlackTree:
                 continue
 
             if p == g.left:     # 父节点p为祖父左结点
-                if n == p.right:        # case 2: n为父结点的右结点
+                if n == p.right:        # case 2: (三角形)n为父结点的右结点
                     # |    |    |g|    |
                     # |p(r)|    | |u(b)|
                     # |    |n(r)| |    |
                     self.rotate_l(p)    # case 2: 以p进行左旋
                     # |    |    |g|    |
-                    # |n(r)|    | |u(b)|
-                    # |    |p(r)| |    |
-                    n, p = p, n         # case 2：(左旋之后的处理工作)切换关注节点
+                    # |    |n(r)| |u(b)|
+                    # |p(r)|    | |    |
+                    n, p = p, n         # case 2：(左旋之后的处理工作)切换关注节点，意义在于：当前关注节点会一直更换，直到root节点
                 # |    |    |g|    |
-                # |p(r)|    | |u(b)|
-                # |    |n(r)| |    |
-                p.set_black()           # case 3
+                # |    |p(r)| |u(b)|
+                # |n(r)|    | |    |
+                p.set_black()           # case 3: (直线)由case2转化而来。
                 g.set_red()             # case 3
                 self.rotate_r(g)        # case 3
-                # |    |    |p(b)|    |
-                # |g(r)|    |    |u(b)|
-                # |    |n(r)|    |    |
+                # |    |p(b)|    |    |
+                # |n(r)|    |g(r)|    |
+                # |    |    |    |u(b)|
             else:               # 父节点p为祖父结点的右结点
                 if n == p.left:         # case 2
                     # |    |g|    |    |
@@ -165,21 +165,21 @@ class RedBlackTree:
                     # |    | |n(r)|    |
                     self.rotate_r(p)    # case 2
                     # |    |g|    |    |
-                    # |u(b)| |    |n(r)|
-                    # |    | |p(r)|    |
+                    # |u(b)| |n(r)|    |
+                    # |    | |    |p(r)|
                     n, p = p, n         # case 2
                     # |    |g|    |    |
-                    # |u(b)| |    |p(r)|
-                    # |    | |n(r)|    |
+                    # |u(b)| |p(r)|    |
+                    # |    | |    |n(r)|
                 p.set_black()           # case 3
                 g.set_red()             # case 3
                 # |    |g(r)|    |    |
-                # |u(b)|    |    |p(b)|
-                # |    |    |n(r)|    |
+                # |u(b)|    |p(b)|    |
+                # |    |    |    |n(r)|
                 self.rotate_l(g)        # case 3
-                # |    |p(b)|    |    |
-                # |u(b)|    |    |g(r)|
-                # |    |    |n(r)|    |
+                # |    |    |p(b)|    |
+                # |    |g(r)|    |n(r)|
+                # |u(b)|    |    |    |
 
 
         # 根节点强制置黑，有两种情况根节点是红色：
@@ -215,7 +215,7 @@ class RedBlackTree:
         # n的子节点个数等于2
         if self.children_count(n) == 2:
             # 寻找n的后继s
-            s = n.right
+            s = n.right   # 画图可知(二叉树)，先删右边是可以的。
             while s.left != self.black_leaf:
                 s = s.left
             n.val = s.val
@@ -249,9 +249,15 @@ class RedBlackTree:
             # 左右节点对称
             if p.left == n:
                 if not b.is_black():
+                    # |    |p|    |
+                    # |n(b)| |b(r)|
                     b.set_black()                   # case 1
                     p.set_red()                     # case 1
+                    # |    |p(r)|    |
+                    # |n(b)|    |b(b)|
                     self.rotate_l(p)                # case 1
+                    # |    |n(b)|    |
+                    # |p(r)|    |b(b)|
                     # new bro after rotate
                     b = self.bro(n)                 # case 1
 
@@ -325,7 +331,7 @@ class RedBlackTree:
             else:
                 p.right = n2
 
-            n2.parent = p
+            n2.parent = p          # 这个时候，只处理了p与n2的关系，n1的关系还是没有动过，需要再处理。
 
     def rotate_l(self, node):
         """
@@ -333,10 +339,11 @@ class RedBlackTree:
         :param node:
         :return:
 
-        |  p    | |       |  |    p|
-        | |x|   | |  ==>  |  |   |y|
-        | | |   |y|  ==>  | x|   | |  
-        | | |y.l| |       |  |y.l| |
+        时间复杂度：O(1)
+        |  p    | |       | |    p|
+        | |x|   | |  ==>  | |   |y|
+        | | |   |y|  ==>  |x|   | |  
+        | | |y.l| |       | |y.l| |
 
         """
         if node is None:
@@ -398,6 +405,7 @@ class RedBlackTree:
         :param node:
         :return:
          
+        时间复杂度：O(1)
         | |    p|       |p|   | |
         | |   |x|  ==>  |y|   | |
         |y|   | |  ==>  | |   |x|  
